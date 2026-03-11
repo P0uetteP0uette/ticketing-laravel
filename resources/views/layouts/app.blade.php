@@ -19,8 +19,9 @@
             <li><a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">📊 Tableau de bord</a></li>
             <li><a href="{{ route('projects') }}" class="{{ request()->routeIs('projects') ? 'active' : '' }}">📁 Projets</a></li>
             <li><a href="{{ route('tickets') }}" class="{{ request()->routeIs('tickets') ? 'active' : '' }}">🎫 Tickets</a></li>
-            <li><a href="#">👤 Mon Profil</a></li>
-            <li><a href="#">⚙️ Paramètres</a></li>
+            <li><a href="{{ route('profile') }}" class="{{ request()->routeIs('profile') ? 'active' : '' }}">👤 Mon Profil</a></li>
+            <li><a href="{{ route('settings') }}" class="{{ request()->routeIs('settings') ? 'active' : '' }}">⚙️ Paramètres</a></li>
+            <li><a href="{{ route('login') }}" class="btn-logout">🚪 Déconnexion</a></li>
         </ul>
     </nav>
 

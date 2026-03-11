@@ -8,7 +8,7 @@
             <h1>Liste des Projets</h1>
             <p class="text-muted">Suivi des contrats et des enveloppes d'heures.</p>
         </div>
-        <a href="#" class="btn btn-sm btn-create">➕ Nouveau Projet</a>
+        <a href="{{ route('project.create') }}" class="btn btn-sm btn-create">➕ Nouveau Projet</a>
     </header>
 
     <div class="table-container">

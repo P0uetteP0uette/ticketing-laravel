@@ -8,7 +8,7 @@
             <h1>Liste des Tickets</h1>
             <p class="text-muted">Gérez les demandes et suivez l'avancement.</p>
         </div>
-        <a href="#" class="btn btn-sm btn-create">➕ Nouveau Ticket</a>
+        <a href="{{ route('ticket.create') }}" class="btn btn-sm btn-create">➕ Nouveau Ticket</a>
     </header>
 
     <div class="table-container">
