@@ -42,7 +42,7 @@
                         <td data-label="Auteur">{{ $ticket['auteur'] }}</td>
                         <td data-label="Statut"><span class="badge {{ $statusClass }}">{{ $ticket['statut'] }}</span></td>
                         <td data-label="Priorité"><span class="badge {{ $priorityClass }}">{{ $ticket['priorite'] }}</span></td>
-                        <td data-label="Actions"><a href="#" class="btn btn-sm btn-light">Voir</a></td>
+                        <td data-label="Actions"><a href="{{ route('ticket.show', $ticket['id']) }}" class="btn btn-sm btn-light">Voir</a></td>
                     </tr>
                 @endforeach
             </tbody>

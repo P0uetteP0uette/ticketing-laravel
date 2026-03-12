@@ -19,6 +19,10 @@ Route::get('/parametres', [PageController::class,'settings'])->name('settings');
 Route::get('/projets/nouveau', [PageController::class,'createProject'])->name('project.create');
 Route::get('/tickets/nouveau', [PageController::class,'createTicket'])->name('ticket.create');
 
+// Les pages de détails (le {id} permet de capturer le numéro dans l'URL)
+Route::get('/projets/{id}', [PageController::class, 'showProject'])->name('project.show');
+Route::get('/tickets/{id}', [PageController::class, 'showTicket'])->name('ticket.show');
+
 // Les pages d'authentification
 Route::get('/login', [PageController::class, 'login'])->name('login');
 Route::get('/register', [PageController::class, 'register'])->name('register');

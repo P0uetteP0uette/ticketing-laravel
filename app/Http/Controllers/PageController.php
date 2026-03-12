@@ -95,4 +95,45 @@ class PageController extends Controller
     {
         return view('pages.auth.forgot-password');
     }
+    
+    public function showProject($id)
+    {
+        // On simule un projet récupéré en BDD grâce à l'ID
+        $project = [
+            'id' => $id,
+            'nom' => 'Refonte Site Web',
+            'client' => 'Acme Corp',
+            'description' => 'Refonte complète du site vitrine et espace client.',
+            'heures_total' => 50,
+            'heures_utilisees' => 35,
+            'taux' => 80
+        ];
+
+        // On simule les tickets liés à ce projet
+        $project_tickets = [
+            ['id' => 101, 'titre' => 'Bug affichage page accueil', 'statut' => 'Nouveau'],
+            ['id' => 102, 'titre' => 'Ajout bouton paiement', 'statut' => 'En cours']
+        ];
+
+        return view('pages.project-detail', compact('project', 'project_tickets'));
+    }
+
+    public function showTicket($id)
+    {
+        // On simule un ticket récupéré en BDD
+        $ticket = [
+            'id' => $id,
+            'titre' => 'Bug affichage page accueil',
+            'description' => "Le bouton de contact ne fonctionne plus sur la version mobile.\nMerci de regarder au plus vite.",
+            'type' => 'inclus',
+            'statut' => 'En cours',
+            'priorite' => 'Haute',
+            'client_nom' => 'Acme Corp',
+            'projet_nom' => 'Refonte Site Web',
+            'date_creation' => '2024-03-12',
+            'temps_total_ticket' => 2.5
+        ];
+
+        return view('pages.ticket-detail', compact('ticket'));
+    }
 }
