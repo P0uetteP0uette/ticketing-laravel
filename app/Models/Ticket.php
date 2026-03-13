@@ -10,16 +10,16 @@ class Ticket extends Model
 
     public function projet()
     {
-        return $this->belongsTo('Project::class', 'projet_id');
+        return $this->belongsTo(Project::class, 'projet_id');
     }
 
     public function auteur()
     {
-        return $this->belongsTo('User::class','auteur_id');
+        return $this->belongsTo(User::class,'auteur_id');
     }
 
     public function tempsPasses()
     {
-        return $this->hasMany('TempsPasse::class','ticket_id');
+        return $this->hasMany(TempsPasse::class,'ticket_id');
     }
 }
