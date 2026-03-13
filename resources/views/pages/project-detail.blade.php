@@ -17,6 +17,7 @@
             <p class="text-muted">Client : <strong>{{ $project['client'] }}</strong> • {{ $project['description'] }}</p>
         </div>
         <div class="header-actions">
+            <a href="{{ route('project.edit', $project['id']) }}" class="btn btn-sm btn-light">✏️ Modifier</a>
             <a href="{{ route('ticket.create') }}" class="btn btn-sm">➕ Nouveau Ticket</a>
         </div>
     </div>

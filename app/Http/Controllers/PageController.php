@@ -172,6 +172,51 @@ class PageController extends Controller
         return redirect()->route('ticket.show', $id);
     }
 
+    // --- MODIFIER UN PROJET ---
+    public function editProject($id)
+    {
+        $project = Project::findOrFail($id); // On récupère le projet à modifier
+        $clients = Client::all(); // On a besoin des clients pour le menu déroulant
+        return view('pages.project-edit', compact('project', 'clients'));
+    }
+
+    public function updateProject(Request $request, $id)
+    {
+        $project = Project::findOrFail($id);
+        
+        // La magie d'Eloquent : on met à jour uniquement ce qui a changé
+        $project->update([
+            'nom' => $request->nom,
+            'description' => $request->description,
+        ]);
+
+        // On renvoie l'utilisateur sur la page de détail du projet
+        return redirect()->route('project.show', $id);
+    }
+
+    // --- MODIFIER UN TICKET ---
+    public function editTicket($id)
+    {
+        $ticket = Ticket::findOrFail($id);
+        $projets = Project::all();
+        return view('pages.ticket-edit', compact('ticket', 'projets'));
+    }
+
+    public function updateTicket(Request $request, $id)
+    {
+        $ticket = Ticket::findOrFail($id);
+        
+        $ticket->update([
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'type' => $request->type,
+            'priorite' => $request->priorite,
+            'statut' => $request->statut // C'est ici qu'on peut enfin changer le statut !
+        ]);
+
+        return redirect()->route('ticket.show', $id);
+    }
+
     // Les vues qui n'ont pas besoin de la BDD pour s'afficher
     public function profile() { return view('pages.profile', ['user' => ['prenom'=>'Admin', 'nom'=>'Super', 'email'=>'admin@ticketing.app', 'role'=>'Administrateur']]); }
     public function settings() { return view('pages.settings'); }

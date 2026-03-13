@@ -5,13 +5,16 @@
 <div class="page-header-simple">
     <a href="{{ route('tickets') }}" class="link-back">← Retour à la liste</a>
     <div class="header-flex mt-1">
-        <h1>#{{ $ticket['id'] }} - {{ $ticket['titre'] }}</h1>
+    <h1>#{{ $ticket['id'] }} - {{ $ticket['titre'] }}</h1>
+    <div class="d-flex align-center gap-1">
+        <a href="{{ route('ticket.edit', $ticket['id']) }}" class="btn btn-sm btn-light">✏️ Modifier</a>
         @if($ticket['type'] === 'facturable')
             <span class="badge badge-red">Facturable</span>
         @else
             <span class="badge badge-gray">Inclus</span>
         @endif
     </div>
+</div>
 </div>
 
 <div class="grid-2-1">

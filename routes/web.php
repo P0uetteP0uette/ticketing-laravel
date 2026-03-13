@@ -32,3 +32,12 @@ Route::get('/forgot-password', [PageController::class, 'forgotPassword'])->name(
 Route::post('/projets/nouveau', [PageController::class, 'storeProject'])->name('project.store');
 Route::post('/tickets/nouveau', [PageController::class, 'storeTicket'])->name('ticket.store');
 Route::post('/tickets/{id}/temps', [PageController::class, 'addTime'])->name('ticket.addTime');
+
+// --- MODIFICATION ---
+// 1. Afficher les formulaires pré-remplis
+Route::get('/projets/{id}/editer', [PageController::class, 'editProject'])->name('project.edit');
+Route::get('/tickets/{id}/editer', [PageController::class, 'editTicket'])->name('ticket.edit');
+
+// 2. Sauvegarder les modifications en BDD (Méthode PUT)
+Route::put('/projets/{id}', [PageController::class, 'updateProject'])->name('project.update');
+Route::put('/tickets/{id}', [PageController::class, 'updateTicket'])->name('ticket.update');
