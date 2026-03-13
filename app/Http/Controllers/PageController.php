@@ -217,6 +217,24 @@ class PageController extends Controller
         return redirect()->route('ticket.show', $id);
     }
 
+    // --- SUPPRIMER UN PROJET ---
+    public function destroyProject($id)
+    {
+        $project = Project::findOrFail($id);
+        $project->delete(); // La magie d'Eloquent : ça supprime aussi les tickets liés si tu as mis 'cascade' dans tes migrations !
+
+        return redirect()->route('projects');
+    }
+
+    // --- SUPPRIMER UN TICKET ---
+    public function destroyTicket($id)
+    {
+        $ticket = Ticket::findOrFail($id);
+        $ticket->delete();
+
+        return redirect()->route('tickets');
+    }
+
     // Les vues qui n'ont pas besoin de la BDD pour s'afficher
     public function profile() { return view('pages.profile', ['user' => ['prenom'=>'Admin', 'nom'=>'Super', 'email'=>'admin@ticketing.app', 'role'=>'Administrateur']]); }
     public function settings() { return view('pages.settings'); }

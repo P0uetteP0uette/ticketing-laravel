@@ -41,3 +41,7 @@ Route::get('/tickets/{id}/editer', [PageController::class, 'editTicket'])->name(
 // 2. Sauvegarder les modifications en BDD (Méthode PUT)
 Route::put('/projets/{id}', [PageController::class, 'updateProject'])->name('project.update');
 Route::put('/tickets/{id}', [PageController::class, 'updateTicket'])->name('ticket.update');
+
+// --- SUPPRESSION ---
+Route::delete('/projets/{id}', [PageController::class, 'destroyProject'])->name('project.destroy');
+Route::delete('/tickets/{id}', [PageController::class, 'destroyTicket'])->name('ticket.destroy');
