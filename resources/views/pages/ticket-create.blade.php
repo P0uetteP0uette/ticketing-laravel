@@ -9,7 +9,8 @@
     </div>
 
     <div class="card">
-        <form>
+        <form action="{{ route('ticket.store') }}" method="POST">
+        @csrf
             <div class="d-flex gap-1 mb-1 mobile-col">
                 <div class="form-group flex-1">
                     <label for="project">Projet concerné *</label>
@@ -50,7 +51,7 @@
             </div>
 
             <div class="text-right mt-2">
-                <button type="button" class="btn btn-wide">Créer le ticket</button>
+                <button type="submit" class="btn btn-wide">Créer le ticket</button>
             </div>
         </form>
     </div>

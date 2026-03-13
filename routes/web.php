@@ -27,3 +27,8 @@ Route::get('/tickets/{id}', [PageController::class, 'showTicket'])->name('ticket
 Route::get('/login', [PageController::class, 'login'])->name('login');
 Route::get('/register', [PageController::class, 'register'])->name('register');
 Route::get('/forgot-password', [PageController::class, 'forgotPassword'])->name('password.request');
+
+// Enregistrement des formulaires en BDD
+Route::post('/projets/nouveau', [PageController::class, 'storeProject'])->name('project.store');
+Route::post('/tickets/nouveau', [PageController::class, 'storeTicket'])->name('ticket.store');
+Route::post('/tickets/{id}/temps', [PageController::class, 'addTime'])->name('ticket.addTime');

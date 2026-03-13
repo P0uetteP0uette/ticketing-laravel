@@ -10,7 +10,8 @@
     </div>
 
     <div class="card">
-        <form>
+        <form action="{{ route('project.store') }}" method="POST">
+        @csrf
             <h2 class="form-section-title">1. Identité du projet</h2>
             
             <div class="d-flex gap-1 mb-1 mobile-col">
@@ -50,7 +51,7 @@
             </div>
 
             <div class="form-actions text-right mt-2">
-                <button type="button" class="btn btn-wide">Valider le projet</button>
+                <button type="submit" class="btn btn-wide">Valider le projet</button>
             </div>
         </form>
     </div>

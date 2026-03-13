@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\Client;
 use App\Models\User;
+use App\Models\TempsPasse;
 
 class PageController extends Controller
 {
@@ -123,6 +124,52 @@ class PageController extends Controller
     {
         $projets = Project::all()->toArray();
         return view('pages.ticket-create', compact('projets'));
+    }
+
+    public function storeProject(Request $request)
+    {
+        // 1. On crée le projet avec les données du formulaire
+        Project::create([
+            'nom' => $request->nom,
+            'description' => $request->description,
+            'contrat_id' => 1 // On force le contrat 1 pour l'instant (car on n'a pas encore fait de formulaire de création de contrat)
+        ]);
+
+        // 2. On redirige vers la liste des projets
+        return redirect()->route('projects');
+    }
+
+    public function storeTicket(Request $request)
+    {
+        // On récupère notre Admin de test pour simuler l'auteur
+        $user = User::first();
+
+        Ticket::create([
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'type' => $request->type,
+            'priorite' => $request->priorite,
+            'projet_id' => $request->projet_id,
+            'auteur_id' => $user->id,
+            'statut' => 'Nouveau'
+        ]);
+
+        return redirect()->route('tickets');
+    }
+
+    public function addTime(Request $request, $id)
+    {
+        $user = User::first();
+
+        // On enregistre le temps passé
+        TempsPasse::create([
+            'duree_heures' => $request->duree,
+            'ticket_id' => $id,
+            'user_id' => $user->id
+        ]);
+
+        // On recharge la page du ticket avec un message de succès
+        return redirect()->route('ticket.show', $id);
     }
 
     // Les vues qui n'ont pas besoin de la BDD pour s'afficher

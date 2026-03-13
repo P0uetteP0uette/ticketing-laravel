@@ -51,11 +51,12 @@
                 <li><strong>Temps total passé</strong> <span class="text-primary" style="font-weight: bold; font-size: 1.1rem;">{{ $ticket['temps_total_ticket'] }} h</span></li>
             </ul>
 
-            <form style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+            <form action="{{ route('ticket.addTime', $ticket['id']) }}" method="POST" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                @csrf
                 <label for="duree" style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 5px;">Pointer des heures :</label>
                 <div class="d-flex gap-1">
                     <input type="number" step="0.5" min="0.5" id="duree" name="duree" placeholder="Ex: 1.5" required style="flex: 1; padding: 5px;">
-                    <button type="button" class="btn btn-sm">Ajouter</button>
+                    <button type="submit" class="btn btn-sm">Ajouter</button>
                 </div>
                 <small class="text-muted" style="display: block; margin-top: 5px;">(Par tranches de 0.5h)</small>
             </form>
