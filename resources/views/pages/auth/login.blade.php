@@ -9,23 +9,29 @@
             <p class="text-muted">Accédez à votre espace de gestion.</p>
         </div>
 
-        <form>
+        <form action="{{ route('login.authenticate') }}" method="POST">
+            @csrf
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="admin@ticketing.app" required>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" required>
+
+                @error('email')
+                    <span style="color: var(--danger, red); font-size: 0.85rem; margin-top: 5px; display: block;">{{ $message }}</span>
+                @enderror
             </div>
+
             <div class="form-group">
                 <div class="d-flex" style="justify-content: space-between; align-items: center;">
                     <label for="password" style="margin:0;">Mot de passe</label>
-                    <a href="{{ route('password.request') }}" style="font-size: 0.85rem; color: var(--primary-color);">Mot de passe oublié ?</a>
+                    <a href="{{ route('password.request') }}" tabindex="-1" style="font-size: 0.85rem; color: var(--primary-color);">Mot de passe oublié ?</a>
                 </div>
                 <input type="password" id="password" name="password" placeholder="••••••••" required>
             </div>
 
-            <a href="{{ route('dashboard') }}" class="btn mb-1 text-center" style="display: block;">Se connecter</a>
+            <button type="submit" class="btn btn-wide mb-1" style="width: 100%; display: block; margin-bottom: 1rem;">Se connecter</button>
 
             <div style="text-align: center; font-size: 0.9rem;">
-                Pas encore de compte ? <a href="{{ route('register') }}" class="text-primary" style="font-weight: bold;">S'inscrire</a>
+                Pas encore de compte ? <a href="{{ route('register') }}" tabindex="-1" class="text-primary" style="font-weight: bold;">S'inscrire</a>
             </div>
         </form>
     </div>

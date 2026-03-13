@@ -45,3 +45,11 @@ Route::put('/tickets/{id}', [PageController::class, 'updateTicket'])->name('tick
 // --- SUPPRESSION ---
 Route::delete('/projets/{id}', [PageController::class, 'destroyProject'])->name('project.destroy');
 Route::delete('/tickets/{id}', [PageController::class, 'destroyTicket'])->name('ticket.destroy');
+
+// Traitement du formulaire d'inscription
+Route::post('/inscription', [PageController::class, 'storeUser'])->name('register.store');
+
+// Traitement du formulaire de connexion
+Route::post('/connexion', [PageController::class, 'authenticate'])->name('login.authenticate');
+
+Route::get('/deconnexion', [PageController::class, 'logout'])->name('logout');

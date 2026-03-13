@@ -9,6 +9,8 @@ use App\Models\Ticket;
 use App\Models\Client;
 use App\Models\User;
 use App\Models\TempsPasse;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class PageController extends Controller
 {
@@ -21,9 +23,9 @@ class PageController extends Controller
             'projets_actifs' => Project::count()
         ];
         
-        // On récupère le premier utilisateur (notre Admin créé par le Seeder)
-        $user = User::first();
-        $prenomUser = $user ? $user->prenom : "Admin";
+        // On récupère l'utilisateur connecté !
+        $user = Auth::user();
+        $prenomUser = $user ? $user->prenom : "Invité";
 
         return view('pages.dashboard', compact('stats', 'prenomUser'));
     }
@@ -141,8 +143,8 @@ class PageController extends Controller
 
     public function storeTicket(Request $request)
     {
-        // On récupère notre Admin de test pour simuler l'auteur
-        $user = User::first();
+        // C'est l'utilisateur connecté qui devient l'auteur du ticket
+        $user = Auth::user();
 
         Ticket::create([
             'titre' => $request->titre,
@@ -159,7 +161,8 @@ class PageController extends Controller
 
     public function addTime(Request $request, $id)
     {
-        $user = User::first();
+        // C'est l'utilisateur connecté qui pointe ses heures
+        $user = Auth::user();
 
         // On enregistre le temps passé
         TempsPasse::create([
@@ -235,8 +238,66 @@ class PageController extends Controller
         return redirect()->route('tickets');
     }
 
-    // Les vues qui n'ont pas besoin de la BDD pour s'afficher
-    public function profile() { return view('pages.profile', ['user' => ['prenom'=>'Admin', 'nom'=>'Super', 'email'=>'admin@ticketing.app', 'role'=>'Administrateur']]); }
+    public function storeUser(Request $request)
+    {
+        // 1. On crée le nouvel utilisateur dans la BDD
+        $user = User::create([
+            'prenom' => $request->prenom, // Attention: ton input dans le HTML doit bien avoir name="prenom"
+            'nom' => $request->nom,       // name="nom"
+            'email' => $request->email,   // name="email"
+            'password' => Hash::make($request->password), // On crypte le mot de passe par sécurité !
+            'role' => 'Utilisateur'       // Rôle par défaut
+        ]);
+
+        // 2. On connecte l'utilisateur automatiquement après son inscription
+        Auth::login($user);
+
+        // 3. On le redirige vers le tableau de bord
+        return redirect()->route('dashboard'); // Change 'dashboard' si ta route s'appelle autrement
+    }
+
+    public function authenticate(Request $request)
+    {
+        // 1. On récupère l'email et le mot de passe tapés par l'utilisateur
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        // 2. Auth::attempt va faire le sale boulot : chercher l'email en BDD et comparer le mot de passe
+        if (Auth::attempt($credentials)) {
+            // Succès ! On regénère la session (sécurité Laravel)
+            $request->session()->regenerate();
+            
+            // On le redirige vers son tableau de bord
+            return redirect()->route('dashboard'); 
+        }
+
+        // 3. Échec (mauvais mot de passe ou email inconnu) : on le renvoie en arrière avec un message d'erreur
+        return back()->withErrors([
+            'email' => 'Les identifiants ne correspondent pas à nos enregistrements.',
+        ])->onlyInput('email'); // onlyInput permet de garder l'email tapé dans la case pour ne pas tout retaper
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout(); // On déconnecte l'utilisateur
+        
+        // On nettoie la session par sécurité
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // On le renvoie vers la page de connexion
+        return redirect()->route('login');
+    }
+
+    public function profile() 
+    { 
+        // On récupère l'utilisateur connecté
+        $user = Auth::user();
+        return view('pages.profile', compact('user')); 
+    }
+    
     public function settings() { return view('pages.settings'); }
     public function login() { return view('pages.auth.login'); }
     public function register() { return view('pages.auth.register'); }
