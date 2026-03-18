@@ -86,13 +86,35 @@ class PageController extends Controller
     {
         $p = Project::with(['contrat.client', 'tickets.tempsPasses'])->findOrFail($id);
         
+        $heures_total_forfait = $p->contrat->heures_incluses ?? 0;
+        
+        // 🎯 CALCUL 1 : Total de toutes les heures pointées (l'ancienne clé qui manquait)
+        $total_general = $p->tickets->flatMap->tempsPasses->sum('duree_heures');
+
+        // 🎯 CALCUL 2 : Heures à facturer (Uniquement Nouvelles fonctionnalités / Évolutions)
+        $heures_a_facturer = $p->tickets
+            ->whereIn('type', ['Nouvelle fonctionnalité', 'Évolution'])
+            ->flatMap->tempsPasses
+            ->sum('duree_heures');
+
+        // 🎯 CALCUL 3 : Heures consommées sur le forfait (Bugs / Maintenance)
+        $heures_consommees_forfait = $p->tickets
+            ->whereNotIn('type', ['Nouvelle fonctionnalité', 'Évolution'])
+            ->flatMap->tempsPasses
+            ->sum('duree_heures');
+
+        // 🎯 CALCUL 4 : Heures restantes sur le forfait
+        $heures_restantes = max(0, $heures_total_forfait - $heures_consommees_forfait);
+
         $project = [
             'id' => $p->id,
             'nom' => $p->nom,
             'client' => $p->contrat->client->nom_entreprise ?? 'Inconnu',
             'description' => $p->description,
-            'heures_total' => $p->contrat->heures_incluses ?? 0,
-            'heures_utilisees' => $p->tickets->flatMap->tempsPasses->sum('duree_heures'),
+            'heures_total' => $heures_total_forfait,
+            'heures_utilisees' => $total_general, // ✅ On remet cette clé pour corriger l'erreur !
+            'heures_restantes' => $heures_restantes,
+            'heures_a_facturer' => $heures_a_facturer,
             'taux' => $p->contrat->taux_horaire ?? 0
         ];
 
@@ -227,6 +249,10 @@ class PageController extends Controller
     // --- MODIFIER UN TICKET ---
     public function editTicket($id)
     {
+        if(Auth::user()->role !== 'Administrateur'){
+            abort(403, 'Accès refusé : Seul un admin peut modifier un ticket');
+        }
+
         $ticket = Ticket::findOrFail($id);
         $projets = Project::all();
         return view('pages.ticket-edit', compact('ticket', 'projets'));
@@ -234,6 +260,10 @@ class PageController extends Controller
 
     public function updateTicket(Request $request, $id)
     {
+        if(Auth::user()->role !== 'Administrateur'){
+            abort(403, 'Accès refusé');
+        }
+
         $ticket = Ticket::findOrFail($id);
         
         $ticket->update([
@@ -265,6 +295,7 @@ class PageController extends Controller
         if(Auth::user()->role !== 'Administrateur'){
             abort(403, "Accès refusé : vous n'êtes pas administrateur");
         }
+
         $ticket = Ticket::findOrFail($id);
         $ticket->delete();
 

@@ -7,13 +7,15 @@
     <div class="header-flex mt-1">
     <h1>#{{ $ticket['id'] }} - {{ $ticket['titre'] }}</h1>
     <div class="d-flex align-center gap-1">
-        <a href="{{ route('ticket.edit', $ticket['id']) }}" class="btn btn-sm btn-light">✏️ Modifier</a>
+        @if(Auth::user()->role === 'Administrateur')
+            <a href="{{ route('ticket.edit', $ticket['id']) }}" class="btn btn-sm btn-light">✏️ Modifier</a>
         
-        <form action="{{ route('ticket.destroy', $ticket['id']) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce ticket définitivement ?');">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-sm" style="background-color: var(--danger); color: white; border: none; cursor: pointer;">🗑️ Supprimer</button>
-        </form>
+            <form action="{{ route('ticket.destroy', $ticket['id']) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce ticket définitivement ?');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-sm" style="background-color: var(--danger); color: white; border: none; cursor: pointer;">🗑️ Supprimer</button>
+            </form>
+        @endif
         
         @if($ticket['type'] === 'facturable')
             <span class="badge badge-red">Facturable</span>
