@@ -17,13 +17,17 @@
             <p class="text-muted">Client : <strong>{{ $project['client'] }}</strong> • {{ $project['description'] }}</p>
         </div>
         <div class="header-actions">
-            <a href="{{ route('project.edit', $project['id']) }}" class="btn btn-sm btn-light">✏️ Modifier</a>
-            
-            <form action="{{ route('project.destroy', $project['id']) }}" method="POST" onsubmit="return confirm('Attention, cela supprimera aussi tous les tickets liés. Continuer ?');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-sm" style="background-color: var(--danger); border-color: var(--danger);">🗑️ Supprimer</button>
-            </form>
+            @if(Auth::user()->role === 'Administrateur')
+    
+                <a href="{{ route('project.edit', $project['id']) }}" class="btn-modifier">✏️ Modifier</a>
+
+                <form action="{{ route('project.destroy', $project['id']) }}" method="POST" style="display:inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-supprimer">🗑️ Supprimer</button>
+                </form>
+
+            @endif
 
             <a href="{{ route('ticket.create') }}" class="btn btn-sm">➕ Nouveau Ticket</a>
         </div>

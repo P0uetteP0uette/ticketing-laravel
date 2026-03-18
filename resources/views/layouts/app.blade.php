@@ -20,8 +20,16 @@
             <li><a href="{{ route('projects') }}" class="{{ request()->routeIs('projects') ? 'active' : '' }}">📁 Projets</a></li>
             <li><a href="{{ route('tickets') }}" class="{{ request()->routeIs('tickets') ? 'active' : '' }}">🎫 Tickets</a></li>
             <li><a href="{{ route('profile') }}" class="{{ request()->routeIs('profile') ? 'active' : '' }}">👤 Mon Profil</a></li>
-            <li><a href="{{ route('settings') }}" class="{{ request()->routeIs('settings') ? 'active' : '' }}">⚙️ Paramètres</a></li>
-            <li><a href="{{ route('login') }}" class="btn-logout">🚪 Déconnexion</a></li>
+            <li>
+                <a href="{{ route('logout') }}" class="btn-logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    🚪 Déconnexion
+                </a>
+                <!-- On fait un "faux formulaire" pour qu'on puisse se déconnecter (ca exige un post) 
+                     Le get pose des problèmes de sécurité -->
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+            </li>
         </ul>
     </nav>
 

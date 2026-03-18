@@ -9,6 +9,12 @@
             <p class="text-muted">Accédez à votre espace de gestion.</p>
         </div>
 
+        @if(session('success'))
+            <div class="alert-success">
+                ✅ {{ session('success') }}
+            </div>
+        @endif
+
         <form action="{{ route('login.authenticate') }}" method="POST">
             @csrf
             <div class="form-group">

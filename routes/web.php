@@ -3,53 +3,56 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 
-// L'URL '/' appelle la méthode 'dashboard' du PageController
-Route::get('/', [PageController::class, 'dashboard'])->name('dashboard');
+// =============================================================
+// ROUTES PUBLIQUES (Accessibles par tout le monde)
+// =============================================================
+Route::middleware(['guest'])->group(function () {
 
-// L'URL '/projets' appelle la méthode 'projects'
-Route::get('/projets', [PageController::class, 'projects'])->name('projects');
+    // Accueil / Connexion
+    Route::get('/', [PageController::class, 'login'])->name('login');
+    Route::post('/connexion', [PageController::class, 'authenticate'])->name('login.authenticate');
+    Route::get('/login', [PageController::class,'login']);
 
-// L'URL '/tickets' appelle la méthode 'tickets'
-Route::get('/tickets', [PageController::class, 'tickets'])->name('tickets');
+    // Inscription
+    Route::get('/register', [PageController::class, 'register'])->name('register');
+    Route::post('/inscription', [PageController::class, 'storeUser'])->name('register.store');
 
-Route::get('/profil', [PageController::class,'profile'])->name('profile');
-Route::get('/parametres', [PageController::class,'settings'])->name('settings');
+    // Mot de passe oublié
+    Route::get('/forgot-password', [PageController::class, 'forgotPassword'])->name('password.request');
+});
 
-// Pages de création
-Route::get('/projets/nouveau', [PageController::class,'createProject'])->name('project.create');
-Route::get('/tickets/nouveau', [PageController::class,'createTicket'])->name('ticket.create');
+// =============================================================
+// ROUTES PRIVÉES (Uniquement pour les utilisateurs connectés)
+// =============================================================
+Route::middleware(['auth'])->group(function () {
 
-// Les pages de détails (le {id} permet de capturer le numéro dans l'URL)
-Route::get('/projets/{id}', [PageController::class, 'showProject'])->name('project.show');
-Route::get('/tickets/{id}', [PageController::class, 'showTicket'])->name('ticket.show');
+    // Dashboard & Profil
+    Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profil', [PageController::class, 'profile'])->name('profile');
+    Route::get('/parametres', [PageController::class, 'settings'])->name('settings');
+    Route::post('/deconnexion', [PageController::class, 'logout'])->name('logout');
 
-// Les pages d'authentification
-Route::get('/login', [PageController::class, 'login'])->name('login');
-Route::get('/register', [PageController::class, 'register'])->name('register');
-Route::get('/forgot-password', [PageController::class, 'forgotPassword'])->name('password.request');
+    // --- GESTION DES PROJETS ---
+    Route::prefix('projets')->group(function () {
+        Route::get('/', [PageController::class, 'projects'])->name('projects');
+        Route::get('/nouveau', [PageController::class, 'createProject'])->name('project.create');
+        Route::post('/nouveau', [PageController::class, 'storeProject'])->name('project.store');
+        Route::get('/{id}', [PageController::class, 'showProject'])->name('project.show');
+        Route::get('/{id}/editer', [PageController::class, 'editProject'])->name('project.edit');
+        Route::put('/{id}', [PageController::class, 'updateProject'])->name('project.update');
+        Route::delete('/{id}', [PageController::class, 'destroyProject'])->name('project.destroy');
+    });
 
-// Enregistrement des formulaires en BDD
-Route::post('/projets/nouveau', [PageController::class, 'storeProject'])->name('project.store');
-Route::post('/tickets/nouveau', [PageController::class, 'storeTicket'])->name('ticket.store');
-Route::post('/tickets/{id}/temps', [PageController::class, 'addTime'])->name('ticket.addTime');
+    // --- GESTION DES TICKETS ---
+    Route::prefix('tickets')->group(function () {
+        Route::get('/', [PageController::class, 'tickets'])->name('tickets');
+        Route::get('/nouveau', [PageController::class, 'createTicket'])->name('ticket.create');
+        Route::post('/nouveau', [PageController::class, 'storeTicket'])->name('ticket.store');
+        Route::get('/{id}', [PageController::class, 'showTicket'])->name('ticket.show');
+        Route::get('/{id}/editer', [PageController::class, 'editTicket'])->name('ticket.edit');
+        Route::put('/{id}', [PageController::class, 'updateTicket'])->name('ticket.update');
+        Route::delete('/{id}', [PageController::class, 'destroyTicket'])->name('ticket.destroy');
+        Route::post('/{id}/temps', [PageController::class, 'addTime'])->name('ticket.addTime');
+    });
 
-// --- MODIFICATION ---
-// 1. Afficher les formulaires pré-remplis
-Route::get('/projets/{id}/editer', [PageController::class, 'editProject'])->name('project.edit');
-Route::get('/tickets/{id}/editer', [PageController::class, 'editTicket'])->name('ticket.edit');
-
-// 2. Sauvegarder les modifications en BDD (Méthode PUT)
-Route::put('/projets/{id}', [PageController::class, 'updateProject'])->name('project.update');
-Route::put('/tickets/{id}', [PageController::class, 'updateTicket'])->name('ticket.update');
-
-// --- SUPPRESSION ---
-Route::delete('/projets/{id}', [PageController::class, 'destroyProject'])->name('project.destroy');
-Route::delete('/tickets/{id}', [PageController::class, 'destroyTicket'])->name('ticket.destroy');
-
-// Traitement du formulaire d'inscription
-Route::post('/inscription', [PageController::class, 'storeUser'])->name('register.store');
-
-// Traitement du formulaire de connexion
-Route::post('/connexion', [PageController::class, 'authenticate'])->name('login.authenticate');
-
-Route::get('/deconnexion', [PageController::class, 'logout'])->name('logout');
+});

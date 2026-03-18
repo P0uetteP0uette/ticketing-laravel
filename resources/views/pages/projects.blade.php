@@ -8,8 +8,10 @@
             <h1>Liste des Projets</h1>
             <p class="text-muted">Suivi des contrats et des enveloppes d'heures.</p>
         </div>
-        <a href="{{ route('project.create') }}" class="btn btn-sm btn-create">➕ Nouveau Projet</a>
-    </header>
+        @if(Auth::user()->role === 'Administrateur')
+            <a href="{{ route('project.create') }}" class="btn btn-sm btn-create">➕ Nouveau Projet</a>
+        @endif
+        </header>
 
     <div class="table-container">
         <table class="w-100">

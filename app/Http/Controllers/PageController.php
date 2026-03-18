@@ -16,16 +16,23 @@ class PageController extends Controller
 {
     public function dashboard()
     {
-        // On compte les vraies lignes dans la BDD !
-        $stats = [
-            'tickets_totaux' => Ticket::count(),
-            'urgences' => Ticket::whereIn('priorite', ['Haute', 'Critique'])->count(),
-            'projets_actifs' => Project::count()
-        ];
-        
-        // On récupère l'utilisateur connecté !
         $user = Auth::user();
+        // Le "?" remplace le if/else, si user connecté alors user->prenom, sinon "invité"
         $prenomUser = $user ? $user->prenom : "Invité";
+
+        if($user->role === 'Administrateur'){
+            $stats = [
+                'tickets_totaux' => Ticket::count(),
+                'urgences' => Ticket::whereIn('priorite', ['Haute', 'Critique'])->count(),
+                'projets_actifs' => Project::count()
+            ];
+        } else {
+            $stats = [
+                'tickets_totaux' => Ticket::where('auteur_id', $user->id)->count(),
+                'urgences' => Ticket::where('auteur_id', $user->id)->whereIn('priorite', ['Haute', 'Critique'])->count(),
+                'projets_actifs' => Project::count()
+            ];
+        }
 
         return view('pages.dashboard', compact('stats', 'prenomUser'));
     }
@@ -53,8 +60,13 @@ class PageController extends Controller
 
     public function tickets()
     {
-        // On récupère tous les tickets AVEC le nom du projet et de l'auteur
-        $tickets_bdd = Ticket::with(['projet', 'auteur'])->get();
+        $user = Auth::user();
+
+        if($user->role === 'Administrateur'){
+            $tickets_bdd = Ticket::with(['auteur'])->get();
+        } else {
+            $tickets_bdd = Ticket::where('auteur_id', $user->id)->with(['auteur'])->get();
+        }
         
         $tickets = $tickets_bdd->map(function ($t) {
             return [
@@ -99,6 +111,10 @@ class PageController extends Controller
     {
         $t = Ticket::with(['projet.contrat.client', 'auteur', 'tempsPasses'])->findOrFail($id);
         
+        if(Auth::user()->role !== 'Administrateur' && $t->auteur_id !== Auth::id()){
+            abort(403, "Accès refusé : Ce ticket est privé et ne vous appartient pas");
+        }
+
         $ticket = [
             'id' => $t->id,
             'titre' => $t->titre,
@@ -118,6 +134,9 @@ class PageController extends Controller
 
     public function createProject()
     {
+        if(Auth::user()->role !== 'Administrateur'){
+            abort(403, "Accès refusé : vous n'êtes pas admin");
+        }
         $clients = Client::all()->toArray();
         return view('pages.project-create', compact('clients'));
     }
@@ -178,6 +197,10 @@ class PageController extends Controller
     // --- MODIFIER UN PROJET ---
     public function editProject($id)
     {
+        if (Auth::user()->role !== 'Administrateur'){
+            abort(403, 'Accès refusé : Seul un administrateur peut modifier un projet');
+        }
+
         $project = Project::findOrFail($id); // On récupère le projet à modifier
         $clients = Client::all(); // On a besoin des clients pour le menu déroulant
         return view('pages.project-edit', compact('project', 'clients'));
@@ -185,6 +208,10 @@ class PageController extends Controller
 
     public function updateProject(Request $request, $id)
     {
+        if(Auth::user()->role !== 'Administrateur'){
+            abort(403, ('Accès refusé'));
+        }
+
         $project = Project::findOrFail($id);
         
         // La magie d'Eloquent : on met à jour uniquement ce qui a changé
@@ -223,6 +250,9 @@ class PageController extends Controller
     // --- SUPPRIMER UN PROJET ---
     public function destroyProject($id)
     {
+        if(Auth::user()->role !== 'Administrateur'){
+            abort(403, "Accès refusé : vous n'êtes pas administrateur");
+        }
         $project = Project::findOrFail($id);
         $project->delete(); // La magie d'Eloquent : ça supprime aussi les tickets liés si tu as mis 'cascade' dans tes migrations !
 
@@ -232,6 +262,9 @@ class PageController extends Controller
     // --- SUPPRIMER UN TICKET ---
     public function destroyTicket($id)
     {
+        if(Auth::user()->role !== 'Administrateur'){
+            abort(403, "Accès refusé : vous n'êtes pas administrateur");
+        }
         $ticket = Ticket::findOrFail($id);
         $ticket->delete();
 
@@ -240,20 +273,17 @@ class PageController extends Controller
 
     public function storeUser(Request $request)
     {
-        // 1. On crée le nouvel utilisateur dans la BDD
+        // On crée le nouvel utilisateur dans la BDD
         $user = User::create([
-            'prenom' => $request->prenom, // Attention: ton input dans le HTML doit bien avoir name="prenom"
-            'nom' => $request->nom,       // name="nom"
-            'email' => $request->email,   // name="email"
-            'password' => Hash::make($request->password), // On crypte le mot de passe par sécurité !
-            'role' => 'Utilisateur'       // Rôle par défaut
+            'prenom' => $request->prenom,
+            'nom' => $request->nom,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'Utilisateur'
         ]);
 
-        // 2. On connecte l'utilisateur automatiquement après son inscription
-        Auth::login($user);
-
-        // 3. On le redirige vers le tableau de bord
-        return redirect()->route('dashboard'); // Change 'dashboard' si ta route s'appelle autrement
+        // On le redirige vers la page login
+        return redirect()->route('login')->with('success', "Votre compte a bien été créé ! Vous pouvez maintenant vous connecter.");
     }
 
     public function authenticate(Request $request)
@@ -298,8 +328,17 @@ class PageController extends Controller
         return view('pages.profile', compact('user')); 
     }
     
+    public function login()
+    {
+        // Si l'utilisateur est déjà connecté, on le dégage vers le dashboard
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+        
+        return view('pages.auth.login'); // Vérifie bien le chemin de ton fichier .blade.php
+    }
+
     public function settings() { return view('pages.settings'); }
-    public function login() { return view('pages.auth.login'); }
     public function register() { return view('pages.auth.register'); }
     public function forgotPassword() { return view('pages.auth.forgot-password'); }
 }
