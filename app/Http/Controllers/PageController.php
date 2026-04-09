@@ -369,6 +369,23 @@ class PageController extends Controller
         return view('pages.auth.login'); // Vérifie bien le chemin de ton fichier .blade.php
     }
 
+    public function validateQuote($id)
+    {
+        $ticket = Ticket::findOrFail($id);
+
+        // Sécurité : Seul l'auteur du ticket (le client) ou un admin peut valider
+        if (Auth::user()->role !== 'Administrateur' && $ticket->auteur_id !== Auth::id()) {
+            abort(403, "Vous n'avez pas l'autorisation de valider ce devis.");
+        }
+
+        // On change le statut du ticket
+        $ticket->update([
+            'statut' => 'En cours'
+        ]);
+
+        return redirect()->back()->with('success', 'Le devis a été accepté, les travaux commencent !');
+    }
+
     public function settings() { return view('pages.settings'); }
     public function register() { return view('pages.auth.register'); }
     public function forgotPassword() { return view('pages.auth.forgot-password'); }

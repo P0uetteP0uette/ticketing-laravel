@@ -53,6 +53,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}', [PageController::class, 'updateTicket'])->name('ticket.update');
         Route::delete('/{id}', [PageController::class, 'destroyTicket'])->name('ticket.destroy');
         Route::post('/{id}/temps', [PageController::class, 'addTime'])->name('ticket.addTime');
+        Route::post('/{id}/validate', [PageController::class, 'validateQuote'])->name('ticket.validate');
     });
 
 });

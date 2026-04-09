@@ -37,11 +37,17 @@
     </section>
 
     <aside class="col-sidebar">
-        @if ($ticket['type'] === 'facturable')
+        @if ($ticket['type'] === 'facturable' && $ticket['statut'] === 'Nouveau')
         <div class="card card-alert-orange">
             <h2>⚠️ Action requise</h2>
-            <p class="mb-1">Ce ticket est hors forfait. Veuillez valider le devis.</p>
-            <button class="btn bg-green mb-1 w-100">✅ Accepter le devis</button>
+            <p class="mb-1">Ce ticket est hors forfait. Veuillez valider le devis pour que nous puissions débuter.</p>
+            
+            <form action="{{ route('ticket.validate', $ticket['id']) }}" method="POST">
+                @csrf
+                <button type="submit" class="btn bg-green mb-1 w-100" style="cursor: pointer; border: none; padding: 10px; color: white; font-weight: bold; border-radius: 4px;">
+                    ✅ Accepter le devis
+                </button>
+            </form>
         </div>
         @endif
 
