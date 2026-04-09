@@ -81,10 +81,42 @@
     </div>
 </div>
 
+{{-- FORMULAIRE API --}}
+<div class="card" style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 20px; margin-bottom: 20px;">
+    <h3 style="font-size: 1rem; margin-bottom: 15px; color: #1e293b;">⚡ Ajout rapide (via API)</h3>
+    
+    <form id="quick-ticket-form" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+        <input type="hidden" id="api-project-id" value="{{ $project['id'] }}">
+        
+        <div style="flex: 2; min-width: 200px;">
+            <input type="text" id="api-titre" placeholder="Sujet du ticket..." required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div style="flex: 1;">
+            <select id="api-type" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <option value="inclus">Bug</option>
+                <option value="facturable">Nouvelle fonctionnalité</option>
+            </select>
+        </div>
+
+        <div style="flex: 1;">
+            <select id="api-priorite" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <option value="Basse">Basse</option>
+                <option value="Moyenne" selected>Moyenne</option>
+                <option value="Haute">Haute</option>
+                <option value="Critique">Critique</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-sm" style="background: #2563eb;">Ajouter</button>
+    </form>
+    <div id="api-message" style="margin-top: 10px; font-size: 0.85rem; display: none;"></div>
+</div>
+
 {{-- 3. TABLEAU DES TICKETS --}}
 <div class="card card-no-padding" style="background: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
     <div style="padding: 15px 20px; border-bottom: 1px solid #eee; background: #f8f9fa;">
-        <h2 style="font-size: 1.1rem;">Derniers tickets du projet</h2>
+        <h2 style="font-size: 1.1rem; margin:0; border:none;">Derniers tickets du projet</h2>
     </div>
     <div class="table-container">
         <table style="width: 100%; border-collapse: collapse;">
@@ -93,7 +125,7 @@
                     <th style="padding: 12px;">ID</th>
                     <th style="padding: 12px;">Sujet</th>
                     <th style="padding: 12px;">Statut</th>
-                    <th style="padding: 12px;">Actions</th>
+                    <th style="padding: 12px; text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -101,8 +133,12 @@
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 12px;">#{{ $pt['id'] }}</td>
                     <td style="padding: 12px;"><strong>{{ $pt['titre'] }}</strong></td>
-                    <td style="padding: 12px;"><span class="badge" style="background: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">{{ $pt['statut'] }}</span></td>
-                    <td style="padding: 12px;"><a href="{{ route('ticket.show', $pt['id']) }}" class="btn-voir" style="text-decoration: none; color: #007bff;">Voir</a></td>
+                    <td style="padding: 12px;"><span class="badge badge-gray">{{ $pt['statut'] }}</span></td>
+                    <td style="padding: 12px; text-align: right;">
+                        {{-- Bouton pour tester le GET de l'API --}}
+                        <button onclick="viewTicketDetails({{ $pt['id'] }})" class="btn btn-sm btn-outline" style="margin-right: 5px;">👀 Aperçu API</button>
+                        <a href="{{ route('ticket.show', $pt['id']) }}" class="btn btn-sm btn-light">Voir</a>
+                    </td>
                 </tr>
                 @empty
                 <tr><td colspan='4' style="padding: 20px; text-align: center;">Aucun ticket pour ce projet.</td></tr>
@@ -111,4 +147,9 @@
         </table>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+    {{-- Attention: Tu l'as appelé script.js dans tes fichiers, j'ai mis le bon nom ici --}}
+    <script src="{{ asset('js/script.js') }}"></script>
 @endsection

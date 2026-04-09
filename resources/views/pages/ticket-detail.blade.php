@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Détail Ticket - Ticketing App')
 
-@section('content')
+@section("content")
 <div class="page-header-simple">
     <a href="{{ route('tickets') }}" class="link-back">← Retour à la liste</a>
     <div class="header-flex mt-1">
