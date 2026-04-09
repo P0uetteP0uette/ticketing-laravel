@@ -9,11 +9,11 @@
     </header>
 
     <div class="card d-flex align-center gap-1 mobile-col">
-        <div class="avatar avatar-blue" style="width: 80px; height: 80px; font-size: 2rem;">
+        <div class="avatar avatar-blue avatar-lg">
             {{ substr($user['prenom'], 0, 1) . substr($user['nom'], 0, 1) }}
         </div>
         <div>
-            <h2 class="card-title-simple" style="margin-bottom: 0;">
+            <h2 class="card-title-simple mb-0">
                 {{ $user['prenom'] }} {{ $user['nom'] }}
             </h2>
             <p class="text-muted">{{ $user['role'] }}</p>

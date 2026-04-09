@@ -4,8 +4,8 @@
 @section('content')
 <div class="login-container">
     <div class="login-card">
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <h1 style="color: var(--primary-color); margin-bottom: 0.5rem;">Créer un compte</h1>
+        <div class="auth-header">
+            <h1 class="text-primary mb-05">Créer un compte</h1>
             <p class="text-muted">Rejoignez l'équipe pour gérer vos tickets.</p>
         </div>
 
@@ -32,10 +32,10 @@
                 <input type="password" id="password" name="password" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="btn mb-1 text-center" style="width: 100%; display: block;">S'inscrire</button>
+            <button type="submit" class="btn mb-1 w-100 d-block">S'inscrire</button>
             
-            <div style="text-align: center; font-size: 0.9rem;">
-                Déjà un compte ? <a href="{{ route('login') }}" tabindex="-1" class="text-primary" style="font-weight: bold;">Se connecter</a>
+            <div class="text-center text-sm">
+                Déjà un compte ? <a href="{{ route('login') }}" tabindex="-1" class="text-primary font-bold">Se connecter</a>
             </div>
         </form>
     </div>

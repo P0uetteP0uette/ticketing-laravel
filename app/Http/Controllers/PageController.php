@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-// On importe nos modèles pour pouvoir s'en servir !
 use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\Client;
@@ -14,13 +13,16 @@ use Illuminate\Support\Facades\Auth;
 
 class PageController extends Controller
 {
+    // ==========================================
+    // TABLEAU DE BORD & LISTES
+    // ==========================================
+
     public function dashboard()
     {
         $user = Auth::user();
-        // Le "?" remplace le if/else, si user connecté alors user->prenom, sinon "invité"
         $prenomUser = $user ? $user->prenom : "Invité";
 
-        if($user->role === 'Administrateur'){
+        if ($user->role === 'Administrateur') {
             $stats = [
                 'tickets_totaux' => Ticket::count(),
                 'urgences' => Ticket::whereIn('priorite', ['Haute', 'Critique'])->count(),
@@ -39,10 +41,8 @@ class PageController extends Controller
 
     public function projects()
     {
-        // La magie d'Eloquent : On récupère les projets AVEC leurs contrats, clients, tickets et temps passés
         $projets_bdd = Project::with(['contrat.client', 'tickets.tempsPasses'])->get();
         
-        // On reformate pour notre vue Blade
         $projects = $projets_bdd->map(function ($p) {
             return [
                 'id' => $p->id,
@@ -50,7 +50,6 @@ class PageController extends Controller
                 'client' => $p->contrat->client->nom_entreprise ?? 'Inconnu',
                 'statut' => 'Actif',
                 'heures_total' => $p->contrat->heures_incluses ?? 0,
-                // On additionne automatiquement tout le temps passé sur tous les tickets de ce projet !
                 'heures_utilisees' => $p->tickets->flatMap->tempsPasses->sum('duree_heures'),
             ];
         });
@@ -62,7 +61,7 @@ class PageController extends Controller
     {
         $user = Auth::user();
 
-        if($user->role === 'Administrateur'){
+        if ($user->role === 'Administrateur') {
             $tickets_bdd = Ticket::with(['auteur'])->get();
         } else {
             $tickets_bdd = Ticket::where('auteur_id', $user->id)->with(['auteur'])->get();
@@ -82,28 +81,28 @@ class PageController extends Controller
         return view('pages.tickets', compact('tickets'));
     }
 
+    // ==========================================
+    // AFFICHAGE DÉTAILLÉ (SHOW)
+    // ==========================================
+
     public function showProject($id)
     {
         $p = Project::with(['contrat.client', 'tickets.tempsPasses'])->findOrFail($id);
         
         $heures_total_forfait = $p->contrat->heures_incluses ?? 0;
         
-        // 🎯 CALCUL 1 : Total de toutes les heures pointées (l'ancienne clé qui manquait)
         $total_general = $p->tickets->flatMap->tempsPasses->sum('duree_heures');
 
-        // 🎯 CALCUL 2 : Heures à facturer (Uniquement Nouvelles fonctionnalités / Évolutions)
         $heures_a_facturer = $p->tickets
-            ->whereIn('type', ['Nouvelle fonctionnalité', 'Évolution'])
+            ->whereIn('type', ['Nouvelle fonctionnalité', 'Évolution', 'facturable'])
             ->flatMap->tempsPasses
             ->sum('duree_heures');
 
-        // 🎯 CALCUL 3 : Heures consommées sur le forfait (Bugs / Maintenance)
         $heures_consommees_forfait = $p->tickets
-            ->whereNotIn('type', ['Nouvelle fonctionnalité', 'Évolution'])
+            ->whereNotIn('type', ['Nouvelle fonctionnalité', 'Évolution', 'facturable'])
             ->flatMap->tempsPasses
             ->sum('duree_heures');
 
-        // 🎯 CALCUL 4 : Heures restantes sur le forfait
         $heures_restantes = max(0, $heures_total_forfait - $heures_consommees_forfait);
 
         $project = [
@@ -112,7 +111,7 @@ class PageController extends Controller
             'client' => $p->contrat->client->nom_entreprise ?? 'Inconnu',
             'description' => $p->description,
             'heures_total' => $heures_total_forfait,
-            'heures_utilisees' => $total_general, // ✅ On remet cette clé pour corriger l'erreur !
+            'heures_utilisees' => $total_general,
             'heures_restantes' => $heures_restantes,
             'heures_a_facturer' => $heures_a_facturer,
             'taux' => $p->contrat->taux_horaire ?? 0
@@ -133,8 +132,8 @@ class PageController extends Controller
     {
         $t = Ticket::with(['projet.contrat.client', 'auteur', 'tempsPasses'])->findOrFail($id);
         
-        if(Auth::user()->role !== 'Administrateur' && $t->auteur_id !== Auth::id()){
-            abort(403, "Accès refusé : Ce ticket est privé et ne vous appartient pas");
+        if (Auth::user()->role !== 'Administrateur' && $t->auteur_id !== Auth::id()) {
+            abort(403, "Accès refusé : Ce ticket ne vous appartient pas.");
         }
 
         $ticket = [
@@ -147,165 +146,168 @@ class PageController extends Controller
             'client_nom' => $t->projet->contrat->client->nom_entreprise ?? 'Inconnu',
             'projet_nom' => $t->projet->nom ?? 'Inconnu',
             'date_creation' => $t->created_at->format('Y-m-d'),
-            // On calcule le total des heures pointées sur ce ticket
             'temps_total_ticket' => $t->tempsPasses->sum('duree_heures')
         ];
 
         return view('pages.ticket-detail', compact('ticket'));
     }
 
+    // ==========================================
+    // CRÉATION & ENREGISTREMENT (CREATE/STORE)
+    // ==========================================
+
     public function createProject()
     {
-        if(Auth::user()->role !== 'Administrateur'){
-            abort(403, "Accès refusé : vous n'êtes pas admin");
+        if (Auth::user()->role !== 'Administrateur') {
+            abort(403, "Accès refusé : Droits d'administration requis.");
         }
-        $clients = Client::all()->toArray();
+        $clients = Client::all();
         return view('pages.project-create', compact('clients'));
     }
 
     public function createTicket()
     {
-        $projets = Project::all()->toArray();
+        $projets = Project::all();
         return view('pages.ticket-create', compact('projets'));
     }
 
     public function storeProject(Request $request)
     {
-        // 1. On crée le projet avec les données du formulaire
+        if (Auth::user()->role !== 'Administrateur') {
+            abort(403, "Accès refusé : Droits d'administration requis.");
+        }
+
         Project::create([
             'nom' => $request->nom,
             'description' => $request->description,
-            'contrat_id' => 1 // On force le contrat 1 pour l'instant (car on n'a pas encore fait de formulaire de création de contrat)
+            'contrat_id' => 1 
         ]);
 
-        // 2. On redirige vers la liste des projets
-        return redirect()->route('projects');
+        return redirect()->route('projects')->with('success', 'Projet créé avec succès.');
     }
 
     public function storeTicket(Request $request)
     {
-        // C'est l'utilisateur connecté qui devient l'auteur du ticket
-        $user = Auth::user();
-
         Ticket::create([
             'titre' => $request->titre,
             'description' => $request->description,
             'type' => $request->type,
             'priorite' => $request->priorite,
             'projet_id' => $request->projet_id,
-            'auteur_id' => $user->id,
+            'auteur_id' => Auth::id(),
             'statut' => 'Nouveau'
         ]);
 
-        return redirect()->route('tickets');
+        return redirect()->route('tickets')->with('success', 'Ticket créé avec succès.');
     }
 
     public function addTime(Request $request, $id)
     {
-        // C'est l'utilisateur connecté qui pointe ses heures
-        $user = Auth::user();
-
-        // On enregistre le temps passé
         TempsPasse::create([
             'duree_heures' => $request->duree,
             'ticket_id' => $id,
-            'user_id' => $user->id
+            'user_id' => Auth::id()
         ]);
 
-        // On recharge la page du ticket avec un message de succès
-        return redirect()->route('ticket.show', $id);
+        return redirect()->route('ticket.show', $id)->with('success', 'Temps ajouté avec succès.');
     }
 
-    // --- MODIFIER UN PROJET ---
+    // ==========================================
+    // MODIFICATION (EDIT/UPDATE)
+    // ==========================================
+
     public function editProject($id)
     {
-        if (Auth::user()->role !== 'Administrateur'){
-            abort(403, 'Accès refusé : Seul un administrateur peut modifier un projet');
+        if (Auth::user()->role !== 'Administrateur') {
+            abort(403, "Accès refusé : Droits d'administration requis.");
         }
 
-        $project = Project::findOrFail($id); // On récupère le projet à modifier
-        $clients = Client::all(); // On a besoin des clients pour le menu déroulant
+        $project = Project::findOrFail($id);
+        $clients = Client::all();
+        
         return view('pages.project-edit', compact('project', 'clients'));
     }
 
     public function updateProject(Request $request, $id)
     {
-        if(Auth::user()->role !== 'Administrateur'){
-            abort(403, ('Accès refusé'));
+        if (Auth::user()->role !== 'Administrateur') {
+            abort(403, "Accès refusé : Droits d'administration requis.");
         }
 
         $project = Project::findOrFail($id);
-        
-        // La magie d'Eloquent : on met à jour uniquement ce qui a changé
-        $project->update([
-            'nom' => $request->nom,
-            'description' => $request->description,
-        ]);
+        $project->update($request->only(['nom', 'description']));
 
-        // On renvoie l'utilisateur sur la page de détail du projet
-        return redirect()->route('project.show', $id);
+        return redirect()->route('project.show', $id)->with('success', 'Projet mis à jour.');
     }
 
-    // --- MODIFIER UN TICKET ---
     public function editTicket($id)
     {
-        if(Auth::user()->role !== 'Administrateur'){
-            abort(403, 'Accès refusé : Seul un admin peut modifier un ticket');
+        if (Auth::user()->role !== 'Administrateur') {
+            abort(403, "Accès refusé : Droits d'administration requis.");
         }
 
         $ticket = Ticket::findOrFail($id);
         $projets = Project::all();
+        
         return view('pages.ticket-edit', compact('ticket', 'projets'));
     }
 
     public function updateTicket(Request $request, $id)
     {
-        if(Auth::user()->role !== 'Administrateur'){
-            abort(403, 'Accès refusé');
+        if (Auth::user()->role !== 'Administrateur') {
+            abort(403, "Accès refusé : Droits d'administration requis.");
         }
 
         $ticket = Ticket::findOrFail($id);
-        
-        $ticket->update([
-            'titre' => $request->titre,
-            'description' => $request->description,
-            'type' => $request->type,
-            'priorite' => $request->priorite,
-            'statut' => $request->statut // C'est ici qu'on peut enfin changer le statut !
-        ]);
+        $ticket->update($request->only(['titre', 'description', 'type', 'priorite', 'statut']));
 
-        return redirect()->route('ticket.show', $id);
+        return redirect()->route('ticket.show', $id)->with('success', 'Ticket mis à jour.');
     }
 
-    // --- SUPPRIMER UN PROJET ---
+    public function validateQuote($id)
+    {
+        $ticket = Ticket::findOrFail($id);
+
+        if (Auth::user()->role !== 'Administrateur' && $ticket->auteur_id !== Auth::id()) {
+            abort(403, "Vous n'avez pas l'autorisation de valider ce devis.");
+        }
+
+        $ticket->update(['statut' => 'En cours']);
+
+        return redirect()->back()->with('success', 'Le devis a été accepté, les travaux commencent !');
+    }
+
+    // ==========================================
+    // SUPPRESSION (DESTROY)
+    // ==========================================
+
     public function destroyProject($id)
     {
-        if(Auth::user()->role !== 'Administrateur'){
-            abort(403, "Accès refusé : vous n'êtes pas administrateur");
+        if (Auth::user()->role !== 'Administrateur') {
+            abort(403, "Accès refusé : Droits d'administration requis.");
         }
-        $project = Project::findOrFail($id);
-        $project->delete(); // La magie d'Eloquent : ça supprime aussi les tickets liés si tu as mis 'cascade' dans tes migrations !
-
-        return redirect()->route('projects');
+        
+        Project::findOrFail($id)->delete();
+        return redirect()->route('projects')->with('success', 'Projet supprimé.');
     }
 
-    // --- SUPPRIMER UN TICKET ---
     public function destroyTicket($id)
     {
-        if(Auth::user()->role !== 'Administrateur'){
-            abort(403, "Accès refusé : vous n'êtes pas administrateur");
+        if (Auth::user()->role !== 'Administrateur') {
+            abort(403, "Accès refusé : Droits d'administration requis.");
         }
 
-        $ticket = Ticket::findOrFail($id);
-        $ticket->delete();
-
-        return redirect()->route('tickets');
+        Ticket::findOrFail($id)->delete();
+        return redirect()->route('tickets')->with('success', 'Ticket supprimé.');
     }
+
+    // ==========================================
+    // AUTHENTIFICATION & UTILISATEUR
+    // ==========================================
 
     public function storeUser(Request $request)
     {
-        // On crée le nouvel utilisateur dans la BDD
-        $user = User::create([
+        User::create([
             'prenom' => $request->prenom,
             'nom' => $request->nom,
             'email' => $request->email,
@@ -313,77 +315,51 @@ class PageController extends Controller
             'role' => 'Utilisateur'
         ]);
 
-        // On le redirige vers la page login
-        return redirect()->route('login')->with('success', "Votre compte a bien été créé ! Vous pouvez maintenant vous connecter.");
+        return redirect()->route('login')->with('success', "Compte créé avec succès. Vous pouvez vous connecter.");
     }
 
     public function authenticate(Request $request)
     {
-        // 1. On récupère l'email et le mot de passe tapés par l'utilisateur
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        // 2. Auth::attempt va faire le sale boulot : chercher l'email en BDD et comparer le mot de passe
         if (Auth::attempt($credentials)) {
-            // Succès ! On regénère la session (sécurité Laravel)
             $request->session()->regenerate();
-            
-            // On le redirige vers son tableau de bord
             return redirect()->route('dashboard'); 
         }
 
-        // 3. Échec (mauvais mot de passe ou email inconnu) : on le renvoie en arrière avec un message d'erreur
         return back()->withErrors([
             'email' => 'Les identifiants ne correspondent pas à nos enregistrements.',
-        ])->onlyInput('email'); // onlyInput permet de garder l'email tapé dans la case pour ne pas tout retaper
+        ])->onlyInput('email');
     }
 
     public function logout(Request $request)
     {
-        Auth::logout(); // On déconnecte l'utilisateur
-        
-        // On nettoie la session par sécurité
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // On le renvoie vers la page de connexion
         return redirect()->route('login');
     }
 
+    // ==========================================
+    // PAGES STATIQUES & PROFILS
+    // ==========================================
+
     public function profile() 
     { 
-        // On récupère l'utilisateur connecté
         $user = Auth::user();
         return view('pages.profile', compact('user')); 
     }
     
     public function login()
     {
-        // Si l'utilisateur est déjà connecté, on le dégage vers le dashboard
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
-        
-        return view('pages.auth.login'); // Vérifie bien le chemin de ton fichier .blade.php
-    }
-
-    public function validateQuote($id)
-    {
-        $ticket = Ticket::findOrFail($id);
-
-        // Sécurité : Seul l'auteur du ticket (le client) ou un admin peut valider
-        if (Auth::user()->role !== 'Administrateur' && $ticket->auteur_id !== Auth::id()) {
-            abort(403, "Vous n'avez pas l'autorisation de valider ce devis.");
-        }
-
-        // On change le statut du ticket
-        $ticket->update([
-            'statut' => 'En cours'
-        ]);
-
-        return redirect()->back()->with('success', 'Le devis a été accepté, les travaux commencent !');
+        return view('pages.auth.login');
     }
 
     public function settings() { return view('pages.settings'); }

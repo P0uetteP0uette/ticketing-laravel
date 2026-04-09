@@ -13,94 +13,94 @@
                 @if($project['description']) • {{ $project['description'] }} @endif
             </p>
         </div>
-            <div class="header-actions" style="display: flex; align-items: center; gap: 10px;">
-                @if(Auth::user()->role === 'Administrateur')
-                    <a href="{{ route('project.edit', $project['id']) }}" class="btn-modifier">
-                        <span>✏️</span> Modifier
-                    </a>
-
-                    <form action="{{ route('project.destroy', $project['id']) }}" method="POST" style="margin: 0;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn-supprimer" onclick="return confirm('Es-tu sûr de vouloir supprimer ce projet ?')">
-                            <span>🗑️</span> Supprimer
-                        </button>
-                    </form>
-                @endif
-                
-                <a href="{{ route('ticket.create') }}" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 5px; background-color: #2563eb;">
-                    <span>➕</span> Nouveau Ticket
+        <div class="header-actions align-center">
+            @if(Auth::user()->role === 'Administrateur')
+                <a href="{{ route('project.edit', $project['id']) }}" class="btn-modifier">
+                    <span>✏️</span> Modifier
                 </a>
-            </div>
+
+                <form action="{{ route('project.destroy', $project['id']) }}" method="POST" class="m-0">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-supprimer" onclick="return confirm('Es-tu sûr de vouloir supprimer ce projet ?')">
+                        <span>🗑️</span> Supprimer
+                    </button>
+                </form>
+            @endif
+            
+            <a href="{{ route('ticket.create') }}" class="btn btn-sm d-flex align-center gap-05">
+                <span>➕</span> Nouveau Ticket
+            </a>
+        </div>
     </div>
 </div>
 
-{{-- 1. SECTION ADMIN : BILAN FINANCIER --}}
+{{-- BILAN FINANCIER (Admin) --}}
 @if(Auth::user()->role === 'Administrateur')
-    <div class="financial-dashboard" style="display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap;">
-        <div style="background: #e2e8f0; padding: 15px; border-radius: 8px; flex: 1; min-width: 200px; border-left: 5px solid #64748b;">
+    <div class="dashboard-cards">
+        <div class="card-stat stat-total">
             📊 <strong>Forfait Total</strong><br>
-            <span style="font-size: 1.2rem;">{{ $project['heures_total'] }}h</span>
+            <span class="stat-value">{{ $project['heures_total'] }}h</span>
         </div>
         
-        <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; flex: 1; min-width: 200px; border-left: 5px solid #28a745;">
+        <div class="card-stat stat-restant">
             ⏳ <strong>Heures Restantes</strong> (Forfait)<br>
-            <span style="font-size: 1.2rem;">{{ $project['heures_restantes'] }}h</span>
+            <span class="stat-value">{{ $project['heures_restantes'] }}h</span>
         </div>
 
-        <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; flex: 1; min-width: 200px; border-left: 5px solid #ffc107;">
+        <div class="card-stat stat-facturer">
             💰 <strong>À Facturer</strong> (Évolutions)<br>
-            <span style="font-size: 1.2rem;">{{ $project['heures_a_facturer'] }}h</span>
-            <small style="display: block; margin-top: 5px;">Soit : {{ $project['heures_a_facturer'] * $project['taux'] }} € HT</small>
+            <span class="stat-value">{{ $project['heures_a_facturer'] }}h</span>
+            <small class="form-time-help">Soit : {{ $project['heures_a_facturer'] * $project['taux'] }} € HT</small>
         </div>
     </div>
 @endif
 
-{{-- 2. SECTION GRAPHIQUE : CONSOMMATION --}}
+{{-- CONSOMMATION --}}
 @php
     $percent = ($project['heures_total'] > 0) ? ($project['heures_utilisees'] / $project['heures_total']) * 100 : 0;
 @endphp
 
-<div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
-    <div class="card" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h2 style="font-size: 1.1rem; margin-bottom: 15px;">Consommation Globale</h2>
-        <div style="font-size: 2rem; font-weight: bold; margin-bottom: 10px;">
-            {{ $project['heures_utilisees'] }}h <span style="font-size: 1rem; color: #666;">/ {{ $project['heures_total'] }}h</span>
+<div class="stats-grid-dynamic">
+    <div class="card">
+        <h2 class="form-section-title-sm mb-1">Consommation Globale</h2>
+        <div class="stat-value-large">
+            {{ $project['heures_utilisees'] }}h <span class="stat-value-muted">/ {{ $project['heures_total'] }}h</span>
         </div>
-        <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
-            <div style="width: {{ min($percent, 100) }}%; height: 100%; background: {{ $percent > 100 ? '#dc3545' : '#28a745' }};"></div>
+        <div class="progress-container md">
+            <div style="width: {{ min($percent, 100) }}%; height: 100%; background: {{ $percent > 100 ? 'var(--danger)' : 'var(--success)' }};"></div>
         </div>
     </div>
 
-    <div class="card" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h2 style="font-size: 1.1rem; margin-bottom: 15px;">Détail Hors Forfait</h2>
-        <div style="font-size: 2rem; font-weight: bold; color: #f39c12;">
+    <div class="card">
+        <h2 class="form-section-title-sm mb-1">Détail Hors Forfait</h2>
+        <div class="stat-value-large text-warning">
             {{ $project['heures_a_facturer'] }}h
         </div>
-        <p style="color: #666; margin-top: 5px;">Temps passé sur les nouvelles fonctionnalités.</p>
+        <p class="text-muted mt-1">Temps passé sur les nouvelles fonctionnalités.</p>
     </div>
 </div>
 
 {{-- FORMULAIRE API --}}
-<div class="card" style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 20px; margin-bottom: 20px;">
-    <h3 style="font-size: 1rem; margin-bottom: 15px; color: #1e293b;">⚡ Ajout rapide (via API)</h3>
+<div class="card card-api-form mb-2">
+    <h3 class="form-section-title-sm mb-1">⚡ Ajout rapide (via API)</h3>
     
-    <form id="quick-ticket-form" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+    <form id="quick-ticket-form" class="api-form-container">
         <input type="hidden" id="api-project-id" value="{{ $project['id'] }}">
         
-        <div style="flex: 2; min-width: 200px;">
-            <input type="text" id="api-titre" placeholder="Sujet du ticket..." required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <div class="form-group-large">
+            <input type="text" id="api-titre" placeholder="Sujet du ticket..." required class="form-control">
         </div>
 
-        <div style="flex: 1;">
-            <select id="api-type" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <div class="form-group-flex">
+            <select id="api-type" class="form-control">
                 <option value="inclus">Bug</option>
                 <option value="facturable">Nouvelle fonctionnalité</option>
             </select>
         </div>
 
-        <div style="flex: 1;">
-            <select id="api-priorite" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <div class="form-group-flex">
+            <select id="api-priorite" class="form-control">
                 <option value="Basse">Basse</option>
                 <option value="Moyenne" selected>Moyenne</option>
                 <option value="Haute">Haute</option>
@@ -108,40 +108,39 @@
             </select>
         </div>
 
-        <button type="submit" class="btn btn-sm" style="background: #2563eb;">Ajouter</button>
+        <button type="submit" class="btn btn-sm">Ajouter</button>
     </form>
-    <div id="api-message" style="margin-top: 10px; font-size: 0.85rem; display: none;"></div>
+    <div id="api-message" class="api-msg"></div>
 </div>
 
-{{-- 3. TABLEAU DES TICKETS --}}
-<div class="card card-no-padding" style="background: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
-    <div style="padding: 15px 20px; border-bottom: 1px solid #eee; background: #f8f9fa;">
-        <h2 style="font-size: 1.1rem; margin:0; border:none;">Derniers tickets du projet</h2>
+{{-- TABLEAU DES TICKETS --}}
+<div class="card card-no-padding">
+    <div class="table-header-custom">
+        <h2 class="form-section-title-sm m-0">Derniers tickets du projet</h2>
     </div>
     <div class="table-container">
-        <table style="width: 100%; border-collapse: collapse;">
+        <table>
             <thead>
-                <tr style="background: #f1f5f9; text-align: left;">
-                    <th style="padding: 12px;">ID</th>
-                    <th style="padding: 12px;">Sujet</th>
-                    <th style="padding: 12px;">Statut</th>
-                    <th style="padding: 12px; text-align: right;">Actions</th>
+                <tr>
+                    <th>ID</th>
+                    <th>Sujet</th>
+                    <th>Statut</th>
+                    <th class="text-right">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($project_tickets as $pt)
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px;">#{{ $pt['id'] }}</td>
-                    <td style="padding: 12px;"><strong>{{ $pt['titre'] }}</strong></td>
-                    <td style="padding: 12px;"><span class="badge badge-gray">{{ $pt['statut'] }}</span></td>
-                    <td style="padding: 12px; text-align: right;">
-                        {{-- Bouton pour tester le GET de l'API --}}
-                        <button onclick="viewTicketDetails({{ $pt['id'] }})" class="btn btn-sm btn-outline" style="margin-right: 5px;">👀 Aperçu API</button>
+                <tr>
+                    <td>#{{ $pt['id'] }}</td>
+                    <td><strong>{{ $pt['titre'] }}</strong></td>
+                    <td><span class="badge badge-gray">{{ $pt['statut'] }}</span></td>
+                    <td class="text-right">
+                        <button onclick="viewTicketDetails({{ $pt['id'] }})" class="btn btn-sm btn-outline mr-1">👀 Aperçu API</button>
                         <a href="{{ route('ticket.show', $pt['id']) }}" class="btn btn-sm btn-light">Voir</a>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan='4' style="padding: 20px; text-align: center;">Aucun ticket pour ce projet.</td></tr>
+                <tr><td colspan='4' class="table-empty-state text-muted">Aucun ticket pour ce projet.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -150,6 +149,5 @@
 @endsection
 
 @section('scripts')
-    {{-- Attention: Tu l'as appelé script.js dans tes fichiers, j'ai mis le bon nom ici --}}
     <script src="{{ asset('js/script.js') }}"></script>
 @endsection

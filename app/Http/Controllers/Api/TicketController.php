@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
-    // --- 1. LE POST (Créer) ---
+    /**
+     * Crée un nouveau ticket via l'API (Ajout rapide).
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -32,16 +34,17 @@ class TicketController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Ticket créé sans rechargement !',
+            'message' => 'Le ticket a été créé avec succès.',
             'ticket' => $ticket
         ], 201);
     }
 
-    // --- 2. LE GET (Lire) ---
+    /**
+     * Récupère les données brutes d'un ticket spécifique.
+     */
     public function show($id)
     {
         $ticket = Ticket::findOrFail($id);
-        // On renvoie juste les données brutes du ticket
         return response()->json($ticket);
     }
 }

@@ -10,10 +10,10 @@
         @if(Auth::user()->role === 'Administrateur')
             <a href="{{ route('ticket.edit', $ticket['id']) }}" class="btn btn-sm btn-light">✏️ Modifier</a>
         
-            <form action="{{ route('ticket.destroy', $ticket['id']) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce ticket définitivement ?');">
+            <form action="{{ route('ticket.destroy', $ticket['id']) }}" method="POST" class="m-0" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce ticket définitivement ?');">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="btn btn-sm" style="background-color: var(--danger); color: white; border: none; cursor: pointer;">🗑️ Supprimer</button>
+                <button type="submit" class="btn-supprimer">🗑️ Supprimer</button>
             </form>
         @endif
         
@@ -44,7 +44,7 @@
             
             <form action="{{ route('ticket.validate', $ticket['id']) }}" method="POST">
                 @csrf
-                <button type="submit" class="btn bg-green mb-1 w-100" style="cursor: pointer; border: none; padding: 10px; color: white; font-weight: bold; border-radius: 4px;">
+                <button type="submit" class="btn bg-green mb-1 btn-validate-quote">
                     ✅ Accepter le devis
                 </button>
             </form>
@@ -64,19 +64,18 @@
 
         <div class="card">
             <h2>Suivi du temps</h2>
-            
             <ul class="info-list">
-                <li><strong>Temps total passé</strong> <span class="text-primary" style="font-weight: bold; font-size: 1.1rem;">{{ $ticket['temps_total_ticket'] }} h</span></li>
+                <li><strong>Temps total passé</strong> <span class="text-primary text-bold text-xl">{{ $ticket['temps_total_ticket'] }} h</span></li>
             </ul>
 
-            <form action="{{ route('ticket.addTime', $ticket['id']) }}" method="POST" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+            <form action="{{ route('ticket.addTime', $ticket['id']) }}" method="POST" class="form-time-tracking">
                 @csrf
-                <label for="duree" style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 5px;">Pointer des heures :</label>
+                <label for="duree" class="form-time-label">Pointer des heures :</label>
                 <div class="d-flex gap-1">
-                    <input type="number" step="0.5" min="0.5" id="duree" name="duree" placeholder="Ex: 1.5" required style="flex: 1; padding: 5px;">
+                    <input type="number" step="0.5" min="0.5" id="duree" name="duree" placeholder="Ex: 1.5" required class="form-time-input form-control">
                     <button type="submit" class="btn btn-sm">Ajouter</button>
                 </div>
-                <small class="text-muted" style="display: block; margin-top: 5px;">(Par tranches de 0.5h)</small>
+                <small class="text-muted form-time-help">(Par tranches de 0.5h)</small>
             </form>
         </div>
     </aside>

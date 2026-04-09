@@ -4,8 +4,8 @@
 @section('content')
 <div class="login-container">
     <div class="login-card">
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <h1 style="color: var(--primary-color); margin-bottom: 0.5rem;">Connexion</h1>
+        <div class="auth-header">
+            <h1 class="text-primary mb-05">Connexion</h1>
             <p class="text-muted">Accédez à votre espace de gestion.</p>
         </div>
 
@@ -22,22 +22,22 @@
                 <input type="email" id="email" name="email" value="{{ old('email') }}" required>
 
                 @error('email')
-                    <span style="color: var(--danger, red); font-size: 0.85rem; margin-top: 5px; display: block;">{{ $message }}</span>
+                    <span class="text-danger text-sm d-block mt-05">{{ $message }}</span>
                 @enderror
             </div>
 
             <div class="form-group">
-                <div class="d-flex" style="justify-content: space-between; align-items: center;">
-                    <label for="password" style="margin:0;">Mot de passe</label>
-                    <a href="{{ route('password.request') }}" tabindex="-1" style="font-size: 0.85rem; color: var(--primary-color);">Mot de passe oublié ?</a>
+                <div class="d-flex justify-between align-center">
+                    <label for="password" class="m-0">Mot de passe</label>
+                    <a href="{{ route('password.request') }}" tabindex="-1" class="text-sm text-primary">Mot de passe oublié ?</a>
                 </div>
                 <input type="password" id="password" name="password" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="btn btn-wide mb-1" style="width: 100%; display: block; margin-bottom: 1rem;">Se connecter</button>
+            <button type="submit" class="btn btn-wide w-100 d-block mb-1">Se connecter</button>
 
-            <div style="text-align: center; font-size: 0.9rem;">
-                Pas encore de compte ? <a href="{{ route('register') }}" tabindex="-1" class="text-primary" style="font-weight: bold;">S'inscrire</a>
+            <div class="text-center text-sm">
+                Pas encore de compte ? <a href="{{ route('register') }}" tabindex="-1" class="text-primary font-bold">S'inscrire</a>
             </div>
         </form>
     </div>

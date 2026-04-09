@@ -6,7 +6,7 @@
     <title>@yield('title', 'Ticketing App')</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
-<body class="bg-gray-100">
+<body>
 
     @yield('content')
 

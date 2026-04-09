@@ -8,16 +8,16 @@ use App\Http\Controllers\PageController;
 // =============================================================
 Route::middleware(['guest'])->group(function () {
 
-    // Accueil / Connexion
+    // ACCUEIL / CONNEXION
     Route::get('/', [PageController::class, 'login'])->name('login');
     Route::post('/connexion', [PageController::class, 'authenticate'])->name('login.authenticate');
     Route::get('/login', [PageController::class,'login']);
 
-    // Inscription
+    // INSCRIPTION
     Route::get('/register', [PageController::class, 'register'])->name('register');
     Route::post('/inscription', [PageController::class, 'storeUser'])->name('register.store');
 
-    // Mot de passe oublié
+    // FORGET PASSWORD
     Route::get('/forgot-password', [PageController::class, 'forgotPassword'])->name('password.request');
 });
 
@@ -26,7 +26,7 @@ Route::middleware(['guest'])->group(function () {
 // =============================================================
 Route::middleware(['auth'])->group(function () {
 
-    // Dashboard & Profil
+    // --- DASHBOARD & PROFIL ---
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard');
     Route::get('/profil', [PageController::class, 'profile'])->name('profile');
     Route::get('/parametres', [PageController::class, 'settings'])->name('settings');
