@@ -34,7 +34,7 @@
                 <input type="password" id="password" name="password" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="btn btn-wide w-100 d-block mb-1">Se connecter</button>
+            <button type="submit" class="btn w-100 d-block mb-1">Se connecter</button>
 
             <div class="text-center text-sm">
                 Pas encore de compte ? <a href="{{ route('register') }}" tabindex="-1" class="text-primary font-bold">S'inscrire</a>

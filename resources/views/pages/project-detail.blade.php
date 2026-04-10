@@ -83,7 +83,7 @@
 
 {{-- FORMULAIRE API --}}
 <div class="card card-api-form mb-2">
-    <h3 class="form-section-title-sm mb-1">⚡ Ajout rapide (via API)</h3>
+    <h3 class="form-section-title-sm mb-1">⚡ Ajout rapide</h3>
     
     <form id="quick-ticket-form" class="api-form-container">
         <input type="hidden" id="api-project-id" value="{{ $project['id'] }}">
